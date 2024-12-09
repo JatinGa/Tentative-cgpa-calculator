@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced CGPA Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    input, button, select {
+      margin: 5px;
+      padding: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Advanced CGPA Calculator</h1>
+
+  <!-- Form for Subject and Papers -->
+  <div id="form-container">
+    <input type="text" id="subject" placeholder="Subject Name">
+    <div id="papers-container">
+      <input type="number" class="paper-score" placeholder="Paper 1 Score (out of 100)">
+    </div>
+    <button onclick="addPaper()">Add Another Paper</button>
+    <button onclick="addSubject()">Add Subject</button>
+  </div>
+
+  <!-- Button to Calculate CGPA -->
+  <button onclick="calculateCGPA()">Calculate CGPA</button>
+
+  <!-- Results Section -->
+  <h2 id="result"></h2>
+
+  <script>
+    const subjects = [];
+    const gradingScale = [
+      { min: 90, grade: "A+", creditsFactor: 1 },
+      { min: 85, grade: "A", creditsFactor: 1 },
+      { min: 80, grade: "A-", creditsFactor: 0.9 },
+      { min: 75, grade: "B+", creditsFactor: 0.9 },
+      { min: 70, grade: "B", creditsFactor: 0.8 },
+      { min: 65, grade: "B-", creditsFactor: 0.8 },
+      { min: 60, grade: "C", creditsFactor: 0.7 },
+      { min: 50, grade: "D", creditsFactor: 0.5 },
+      { min: 0, grade: "F", creditsFactor: 0 }
+    ];
+
+    // Function to Add a New Paper Input
+    function addPaper() {
+      const papersContainer = document.getElementById("papers-container");
+      const input = document.createElement("input");
+      input.type = "number";
+      input.className = "paper-score";
+      input.placeholder = `Paper ${papersContainer.children.length + 1} Score (out of 100)`;
+      papersContainer.appendChild(input);
+    }
+
+    // Function to Add a Subject
+    function addSubject() {
+      const subjectName = document.getElementById("subject").value;
+      const paperScores = Array.from(document.getElementsByClassName("paper-score"))
+        .map(input => parseFloat(input.value))
+        .filter(score => !isNaN(score));
+
+      if (!subjectName || paperScores.length === 0) {
+        alert("Please provide a subject name and scores for at least one paper.");
+        return;
+      }
+
+      const totalScore = paperScores.reduce((sum, score) => sum + score, 0);
+      const averageScore = totalScore / paperScores.length;
+
+      // Determine Grade and Credit Adjustment
+      const gradeDetails = gradingScale.find(scale => averageScore >= scale.min);
+      const grade = gradeDetails.grade;
+      const creditsFactor = gradeDetails.creditsFactor;
+
+      const maxCredits = 4; // Placeholder, can be updated dynamically later
+      const creditsEarned = maxCredits * creditsFactor;
+
+      subjects.push({
+        subject: subjectName,
+        scores: paperScores,
+        average: averageScore,
+        grade,
+        creditsEarned
+      });
+
+      alert(`Added Subject: ${subjectName}, Grade: ${grade}, Credits Earned: ${creditsEarned.toFixed(1)}`);
+      document.getElementById("subject").value = "";
+      document.getElementById("papers-container").innerHTML = `
+        <input type="number" class="paper-score" placeholder="Paper 1 Score (out of 100)">
+      `;
+    }
+
+    // Function to Calculate CGPA
+    function calculateCGPA() {
+      if (subjects.length === 0) {
+        alert("Please add at least one subject.");
+        return;
+      }
+
+      const totalCredits = subjects.reduce((sum, subj) => sum + subj.creditsEarned, 0);
+      const totalGradePoints = subjects.reduce((sum, subj) => {
+        const gradePoint = gradingScale.find(scale => scale.grade === subj.grade).creditsFactor * 10;
+        return sum + gradePoint * subj.creditsEarned;
+      }, 0);
+
+      const cgpa = totalGradePoints / totalCredits;
+
+      document.getElementById("result").innerText = `Your CGPA is: ${cgpa.toFixed(2)}`;
+    }
+  </script>
+</body>
+</html>
